@@ -7,44 +7,68 @@ Author: Danny de Bree
 Date: 05/11/2024
 """
 
-from fabric_cli.fabric import create_workspace, get_workspaces, provision_identity
 import click
+from .auth import Auth
+from .fabric import create_workspace, get_workspaces, provision_identity
 
-@click.command()
-@click.option('--create', multiple=True, help="List of display names for new workspaces. Usage: --create 'name' --capacity_id 'id'")
-@click.option('--capacity_id', help="Capacity ID for the new workspaces", required=True, hidden=True)
-@click.option('--get', is_flag=True, help="Get existing workspaces")
-def main(create, capacity_id, get):
-    """Manage Microsoft Fabric workspaces.
-    Before starting, ensure set environment variable "POWER_BI_ACCESS_TOKEN" with the token value.
-    """
-    created_workspace_ids = []
+@click.group()
+def main():
+    """Fabric CLI tool"""
+    pass
 
-    # Create workspaces if names are provided
+@main.command()
+@click.option('--token', '-t', required=True, help="Power BI access token")
+def login(token):
+    """Login to Microsoft Fabric"""
+    try:
+        auth = Auth()
+        auth.set_token(token)
+        click.echo("Successfully logged in")
+    except Exception as e:
+        click.echo(f"Error logging in: {e}")
+
+@click.group()
+def provision():
+    """Provision resources for Microsoft Fabric"""
+    pass
+
+@main.command()
+@click.option('--create', multiple=True, help="List of display names for new workspaces")
+@click.option('--capacity_id', help="Capacity ID for new workspaces", required=True, hidden=True)
+def workspace(create, capacity_id, get):
+    """Manage Microsoft Fabric workspaces"""
+    auth = Auth()
+    
     if create:
-        for display_name in create:
+        for name in create:
             try:
-                workspace_id = create_workspace(display_name, capacity_id)
-                if workspace_id:
-                    created_workspace_ids.append(workspace_id)
-                    click.echo(f"Successfully created workspace '{display_name}' with ID: {workspace_id}")
-                else:
-                    click.echo(f"Failed to create workspace '{display_name}'.")
+                workspace_id = create_workspace(name, auth, capacity_id)
+                click.echo(f"Created workspace '{name}' with ID: {workspace_id}")
             except Exception as e:
-                click.echo(f"Error creating workspace '{display_name}': {e}")
+                click.echo(f"Error creating workspace '{name}': {e}")
 
-    # Get existing workspaces if requested
-    if get:
-        try:
-            workspaces = get_workspaces()
-            for workspace_id, display_name in workspaces:
-                click.echo(f"Workspace ID: {workspace_id}, Display Name: {display_name}")
-        except Exception as e:
-            click.echo(f"Error retrieving workspaces: {e}")
 
-    # Provision identity for each created workspace
-    for workspace_id in created_workspace_ids:
-        provision_identity(workspace_id)
+@main.group()
+def display():
+    """Display Microsoft Fabric resources"""
+    pass
 
-if __name__ == "__main__":
+@display.command(name='workspaces')
+def list_workspaces():
+    """List all workspaces"""
+    auth = Auth()
+    try:
+        spaces = get_workspaces(auth)
+        if not spaces:
+            click.echo("No workspaces found")
+            return
+        click.echo("\nWorkspaces:")
+        for id, name in spaces:
+            click.echo(f"  • {name} (ID: {id})")
+    except Exception as e:
+        click.echo(f"Error listing workspaces: {e}")
+
+
+
+if __name__ == '__main__':
     main()

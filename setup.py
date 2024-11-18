@@ -10,7 +10,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "fabric=fabric_cli.main:main",  
+            "fabric=fabric_cli:main",  
         ],
     },
     author="Danny de Bree",

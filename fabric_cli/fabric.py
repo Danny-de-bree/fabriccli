@@ -7,9 +7,10 @@ Author: Danny de Bree
 Date: 05/11/2024
 """
 
-import os
 import requests
 from urllib.parse import urlparse
+from typing import List, Tuple, Optional
+from fabric_cli.auth import Auth
 
 """
 TODO: Implement the following functions to interact with the Microsoft Fabric API:
@@ -30,118 +31,86 @@ TODO: Implement the following functions to interact with the Microsoft Fabric AP
 
 """
 
-def get_access_token():
-    """Retrieve the Power BI access token from environment variables."""
-    access_token = os.getenv("POWER_BI_ACCESS_TOKEN")
-    if access_token is None:
-        raise ValueError("No access token found in environment variables.")
-    return access_token.strip()
-
-def create_workspace(display_name, capacity_id=None):
+def create_workspace(display_name: str, auth: 'Auth', capacity_id: Optional[str] = None) -> str:
     """
     Creates a new workspace in the Microsoft Fabric API.
 
     Args:
-        display_name (str): The display name for the new workspace.
-        capacity_id (str, optional): The capacity ID to associate with the workspace.
+        display_name: The display name for the new workspace.
+        auth: Authentication instance for getting headers.
+        capacity_id: Optional capacity ID to associate with the workspace.
 
     Returns:
-        str: The ID of the created workspace if successful; raises an error otherwise.
+        str: The ID of the created workspace.
+        
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = "https://api.fabric.microsoft.com/v1/workspaces/"
-    json_payload = {
-        "displayName": display_name,
-    }
+    json_payload = {"displayName": display_name}
     
-    # Set the headers using the access token
-    headers = {
-        "Authorization": f"Bearer {get_access_token()}",
-        "Content-Type": "application/json"
-    }
+    if capacity_id:
+        json_payload["capacityId"] = capacity_id
 
-    # Send the POST request to create the workspace
-    response = requests.post(url, json=json_payload, headers=headers)
+    response = requests.post(url, json=json_payload, headers=auth.get_headers())
     response.raise_for_status()
     
-    if response.status_code in (200, 201):
-        print(f"Workspace '{display_name}' creation request accepted. Processing in progress.")
-        location_header = response.headers.get("Location")
-        parsed_url = urlparse(location_header)
-        path_parts = parsed_url.path.split('/')
-        workspace_id = path_parts[-1]
+    location_header = response.headers.get("Location")
+    if not location_header:
+        raise ValueError("No Location header in response")
         
-        print(location_header)
-        print(f"Workspace ID: {workspace_id}")
-        
-        return workspace_id
-    else:
-        print("Failed to create workspace.")
-        return None
+    workspace_id = urlparse(location_header).path.split('/')[-1]
+    return workspace_id
 
-def get_workspaces():
+def get_workspaces(auth: 'Auth') -> List[Tuple[str, str]]:
     """
-    Fetches the list of workspace IDs and display names from the Microsoft Fabric API.
+    Fetches the list of workspace IDs and display names.
+
+    Args:
+        auth: Authentication instance for getting headers.
 
     Returns:
-        list: A list of tuples containing workspace IDs and display names if the request is successful; 
-        raises an error otherwise.
+        List of tuples containing workspace IDs and display names.
+        
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
-    headers = {
-        "Authorization": f"Bearer {get_access_token()}",
-        "Content-Type": "application/json"
-    }
-    
     url = "https://api.fabric.microsoft.com/v1/workspaces/"
-    response = requests.get(url, headers=headers)
-
-    # Check the response
+    response = requests.get(url, headers=auth.get_headers())
     response.raise_for_status()
     
-    if response.status_code == 200:
-        print("Request successful. Here are the workspaces:")
-        response_data = response.json()
+    response_data = response.json()
+    workspace_list = []
 
-        workspace_list = []  # List to store workspace IDs and display names
-        if 'value' in response_data:
-            for workspace in response_data['value']:
-                workspace_id = workspace.get('id')  # Get the workspace ID
-                display_name = workspace.get('displayName')  # Get the display name
-                if workspace_id and display_name:  # Ensure neither is None or empty
-                    workspace_list.append((workspace_id, display_name))  # Append as a tuple
-        else:
-            print("No workspaces found in the response.")
-        
-        return workspace_list  # Return the list of workspace IDs and names
-    else:
-        print("Failed to retrieve workspaces.")
-        return []  # Return an empty list in case of failure
+    for workspace in response_data.get('value', []):
+        workspace_id = workspace.get('id')
+        display_name = workspace.get('displayName')
+        if workspace_id and display_name:
+            workspace_list.append((workspace_id, display_name))
+            
+    return workspace_list
 
-def provision_identity(workspace_id):
+def provision_identity(workspace_id, auth):
     """
     Provision an identity for a specified workspace.
 
     Args:
         workspace_id (str): The ID of the workspace for which to provision an identity.
+        auth (Auth): Authentication instance for getting headers.
 
     Returns:
-        bool: True if the identity was successfully provisioned; False otherwise.
+        bool: True if the identity was successfully provisioned; raises an error otherwise.
     """
-    headers = {
-        "Authorization": f"Bearer {get_access_token()}",
-        "Content-Type": "application/json"
-    }
-
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/provisionIdentity"
     
     # Send the POST request to provision the identity
-    response = requests.post(url, headers=headers)
-
-    # Check the response
+    response = requests.post(url, headers=auth.get_headers())
+    
     try:
         response.raise_for_status()
-        print(f"Successfully provisioned identity for workspace ID: {workspace_id}")
         return True
     except requests.exceptions.HTTPError as err:
-        print(f"Error provisioning identity for workspace ID {workspace_id}: {err}")
-        print(f"Response content: {response.content}")
-        return False
+        error_msg = f"Error provisioning identity for workspace {workspace_id}: {err}"
+        if response.content:
+            error_msg += f"\nResponse: {response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
