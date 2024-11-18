@@ -43,6 +43,10 @@ To use FabricCLI with Microsoft Fabric, you need a valid bearer token. Tokens ar
 5. Search for `powerBIAccessToken` among the network requests.
 6. Copy the token value, then set it as an environment variable named `POWER_BI_ACCESS_TOKEN` in your terminal or IDE.
 
+```bash
+export POWER_BI_ACCESS_TOKEN="your-token-here"
+```
+
 ### Be sure to update this token periodically, as it expires after a short time!
 
 ## 📦 Installation
