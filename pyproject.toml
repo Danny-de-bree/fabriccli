@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FabricCLI"
+version = "0.0.1"
+description = "A CLI tool for managing Microsoft Fabric"
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [
+    { name = "Danny de Bree", email = "d.debree@rubicon.nl" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "click",
+    "requests",
+    "msal",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+]
+
+[project.scripts]
+fabric = "fabric_cli:main"
+
+[tool.black]
+line-length = 100
+
+[tool.flake8]
+max-line-length = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "venv",
+]
