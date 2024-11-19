@@ -7,7 +7,7 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 - Create new workspaces
 - List existing workspaces
 - Provision identities for workspaces (is done when when creating new workspaces)
-- Assign capacity to workspaces
+- Assign capacity to workspaces (is done when when creating new workspaces)
 - Create Lakehouses
 - List Lakehouses
 - Create Warehoues (gives a error, but works)
@@ -24,9 +24,9 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 
 - [ ] Add shortcut with OneLake from storage account.
 
-- [ ] Clean some print statements and add logging.
+- [X] Clean some print statements and add logging.
 
-- [ ] Add tests for the functions.
+- [X] Add tests for the functions.
 
 - [ ] Login in CLI, some format problems. So now set env var plz.
 
@@ -76,14 +76,49 @@ pip install -e .
 ### Creating Workspaces
 
 ```bash
-fabric --create "Workspace Name" --capacity_id "Capacity ID"
+fabric create workspace "Workspace Name" --capacity-id "Capacity ID" --provision-identity
 ```
+
+Capacity-id you will get with listing workspaces.
 
 ### Listing Workspaces
 
 ```bash
-fabric --get
+fabric display workspaces
 ```
+
+## Create Lakehouses
+
+```bash
+fabric create lakehouse "Display Name" workspace-id "Workspace ID"
+```
+
+Workspace-id you will get with listing workspaces.
+
+## Listing Lakehouses
+
+```bash
+fabric display lakehouses --workspace-id "Workspace ID"
+```
+
+Workspace-id you will get with listing workspaces.
+
+## Create Warehouses
+
+```bash
+fabric create warehouse "Display Name" --workspace-id "Workspace ID"
+```
+
+(gives a error, but works)
+
+
+## Listing Warehouses
+
+```bash
+fabric display warehouses --workspace-id "Workspace ID"
+```
+
+Workspace-id you will get with listing workspaces.
 
 ## 📖 Documentation
 

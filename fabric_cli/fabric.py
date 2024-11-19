@@ -2,7 +2,9 @@ import requests
 from urllib.parse import urlparse
 from typing import List, Tuple, Optional
 from .auth import Auth
+import logging
 
+logger = logging.getLogger(__name__)
 
 def create_workspace(display_name: str, auth: "Auth", capacity_id: Optional[str] = None) -> str:
     """
@@ -25,15 +27,25 @@ def create_workspace(display_name: str, auth: "Auth", capacity_id: Optional[str]
     if capacity_id:
         json_payload["capacityId"] = capacity_id
 
-    response = requests.post(url, json=json_payload, headers=auth.get_headers())
-    response.raise_for_status()
+    try:
+        logger.debug(f"Creating workspace with payload: {json_payload}")
+        response = requests.post(url, json=json_payload, headers=auth.get_headers())
+        response.raise_for_status()
 
-    location_header = response.headers.get("Location")
-    if not location_header:
-        raise ValueError("No Location header in response")
+        location_header = response.headers.get("Location")
+        if not location_header:
+            raise ValueError("No Location header in response")
 
-    workspace_id = urlparse(location_header).path.split("/")[-1]
-    return workspace_id
+        workspace_id = urlparse(location_header).path.split("/")[-1]
+        logger.debug(f"Workspace created with ID: {workspace_id}")
+        return workspace_id
+
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error creating workspace: {str(e)}"
+        if e.response and e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
+        logger.error(error_msg)
+        raise requests.exceptions.HTTPError(error_msg)
 
 
 def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
@@ -65,6 +77,7 @@ def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
             if workspace_id and display_name:
                 workspace_list.append((workspace_id, display_name, capacity_id))
 
+        logger.debug(f"Fetched workspaces: {workspace_list}")
         return workspace_list
 
     except requests.exceptions.HTTPError as e:

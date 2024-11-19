@@ -1,5 +1,7 @@
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Auth:
     _instance = None
@@ -13,15 +15,18 @@ class Auth:
     @classmethod
     def set_token(cls, token):
         cls._token = token.strip()
+        logger.debug(f"Token set")
 
     def get_access_token(self):
         # First check in-memory token
         if self._token:
+            logger.debug("Returning in-memory token")
             return self._token
 
         # Then check environment variable
         env_token = os.getenv("POWER_BI_ACCESS_TOKEN")
         if env_token:
+            logger.debug("Returning token from environment variable")
             self._token = env_token.strip()
             return self._token
 
