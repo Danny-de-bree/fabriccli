@@ -1,37 +1,10 @@
-"""
-fabric.py
-
-This script helps to interact with the Microsoft Fabric API.
-
-Author: Danny de Bree
-Date: 05/11/2024
-"""
-
 import requests
 from urllib.parse import urlparse
 from typing import List, Tuple, Optional
-from fabric_cli.auth import Auth
+from .auth import Auth
 
-"""
-TODO: Implement the following functions to interact with the Microsoft Fabric API:
-- Pass capacity_id from api to the create_workspace function.
-    - What do we do if there are multiple capacity_ids?
 
-- Add AAD group to workspace
-     - Very hard need to investigate more.
-
-- Add authentication with SPN
-    - Investigate how to authenticate with SPN.
-
-- Add shortcut with OneLake from storage account.
-
-- Clean some print statements and add logging.
-
-- Add tests for the functions.
-
-"""
-
-def create_workspace(display_name: str, auth: 'Auth', capacity_id: Optional[str] = None) -> str:
+def create_workspace(display_name: str, auth: "Auth", capacity_id: Optional[str] = None) -> str:
     """
     Creates a new workspace in the Microsoft Fabric API.
 
@@ -42,27 +15,28 @@ def create_workspace(display_name: str, auth: 'Auth', capacity_id: Optional[str]
 
     Returns:
         str: The ID of the created workspace.
-        
+
     Raises:
         requests.exceptions.HTTPError: If the API request fails.
     """
     url = "https://api.fabric.microsoft.com/v1/workspaces/"
     json_payload = {"displayName": display_name}
-    
+
     if capacity_id:
         json_payload["capacityId"] = capacity_id
 
     response = requests.post(url, json=json_payload, headers=auth.get_headers())
     response.raise_for_status()
-    
+
     location_header = response.headers.get("Location")
     if not location_header:
         raise ValueError("No Location header in response")
-        
-    workspace_id = urlparse(location_header).path.split('/')[-1]
+
+    workspace_id = urlparse(location_header).path.split("/")[-1]
     return workspace_id
 
-def get_workspaces(auth: 'Auth') -> List[Tuple[str, str]]:
+
+def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
     """
     Fetches the list of workspace IDs and display names.
 
@@ -71,26 +45,37 @@ def get_workspaces(auth: 'Auth') -> List[Tuple[str, str]]:
 
     Returns:
         List of tuples containing workspace IDs and display names.
-        
+
     Raises:
         requests.exceptions.HTTPError: If the API request fails.
     """
-    url = "https://api.fabric.microsoft.com/v1/workspaces/"
-    response = requests.get(url, headers=auth.get_headers())
-    response.raise_for_status()
-    
-    response_data = response.json()
-    workspace_list = []
+    url = "https://api.fabric.microsoft.com/v1/workspaces"
+    params = {"api-version": "2023-11-01"}
 
-    for workspace in response_data.get('value', []):
-        workspace_id = workspace.get('id')
-        display_name = workspace.get('displayName')
-        if workspace_id and display_name:
-            workspace_list.append((workspace_id, display_name))
-            
-    return workspace_list
+    try:
+        response = requests.get(url, params=params, headers=auth.get_headers())
+        response.raise_for_status()
 
-def provision_identity(workspace_id, auth):
+        response_data = response.json()
+        workspace_list = []
+
+        for workspace in response_data.get("value", []):
+            workspace_id = workspace.get("id")
+            display_name = workspace.get("displayName")
+            capacity_id = workspace.get("capacityId")
+            if workspace_id and display_name:
+                workspace_list.append((workspace_id, display_name, capacity_id))
+
+        return workspace_list
+
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error fetching workspaces: {str(e)}"
+        if e.response and e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def provision_workspace_identity(workspace_id, auth: "Auth"):
     """
     Provision an identity for a specified workspace.
 
@@ -102,10 +87,10 @@ def provision_identity(workspace_id, auth):
         bool: True if the identity was successfully provisioned; raises an error otherwise.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/provisionIdentity"
-    
+
     # Send the POST request to provision the identity
     response = requests.post(url, headers=auth.get_headers())
-    
+
     try:
         response.raise_for_status()
         return True
@@ -113,4 +98,171 @@ def provision_identity(workspace_id, auth):
         error_msg = f"Error provisioning identity for workspace {workspace_id}: {err}"
         if response.content:
             error_msg += f"\nResponse: {response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def assign_workspace_to_capacity(workspace_id: str, capacity_id: str, auth: "Auth") -> bool:
+    """
+    Assign a workspace to a capacity.
+
+    Args:
+        workspace_id (str): The ID of the workspace to assign
+        capacity_id (str): The ID of the capacity to assign the workspace to
+        auth (Auth): Authentication instance for getting headers
+
+    Returns:
+        bool: True if successfully assigned, raises an error otherwise
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails
+    """
+    url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/assignToCapacity"
+
+    payload = {"capacityId": capacity_id}
+
+    response = requests.post(url, json=payload, headers=auth.get_headers())
+
+    try:
+        response.raise_for_status()
+        return True
+    except requests.exceptions.HTTPError as err:
+        error_msg = f"Error assigning workspace {workspace_id} to capacity {capacity_id}: {err}"
+        if response.content:
+            error_msg += f"\nResponse: {response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def create_lakehouse(
+    workspace_id: str, display_name: str, auth: "Auth", description: str = None
+) -> str:
+    """Creates a new lakehouse in the specified workspace.
+
+    Args:
+        workspace_id: The ID of the workspace to create the lakehouse in.
+        display_name: The display name for the new lakehouse.
+        auth: Authentication instance for getting headers.
+        description: Optional description for the lakehouse.
+
+    Returns:
+        str: The ID of the created lakehouse.
+    """
+    url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/lakehouses"
+
+    json_payload = {"displayName": display_name}
+
+    if description:
+        json_payload["description"] = description
+
+    response = requests.post(url, json=json_payload, headers=auth.get_headers())
+
+    try:
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data["id"]
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error creating lakehouse: {str(e)}"
+        if e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def get_lakehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
+    """
+    Get all lakehouses in a workspace.
+
+    Args:
+        workspace_id: The ID of the workspace to list lakehouses from.
+        auth: Authentication instance for getting headers.
+
+    Returns:
+        List of tuples containing lakehouse IDs and display names.
+    """
+    url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/lakehouses"
+
+    try:
+        response = requests.get(url, headers=auth.get_headers())
+        response.raise_for_status()
+
+        response_data = response.json()
+        lakehouse_list = []
+
+        for lakehouse in response_data.get("value", []):
+            lakehouse_id = lakehouse.get("id")
+            display_name = lakehouse.get("displayName")
+            if lakehouse_id and display_name:
+                lakehouse_list.append((lakehouse_id, display_name))
+
+        return lakehouse_list
+
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error fetching lakehouses: {str(e)}"
+        if e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def create_warehouse(workspace_id: str, display_name: str, auth: "Auth") -> str:
+    """Creates a new warehouse in the specified workspace.
+
+    Args:
+        workspace_id: The ID of the workspace to create the warehouse in.
+        display_name: The display name for the new warehouse.
+        auth: Authentication instance for getting headers.
+
+    Returns:
+        str: The ID of the created warehouse.
+    """
+    url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/warehouses"
+
+    json_payload = {"displayName": display_name}
+
+    headers = auth.get_headers()
+
+    response = requests.post(url, json=json_payload, headers=headers)
+
+    try:
+        response.raise_for_status()
+        response_data = response.json()
+        if not response_data:
+            raise ValueError("Empty response received")
+        return response_data["id"]
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error creating warehouse: {str(e)}"
+        if e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
+        raise requests.exceptions.HTTPError(error_msg)
+
+
+def get_warehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
+    """
+    Get all warehouses in a workspace.
+
+    Args:
+        workspace_id: The ID of the workspace to list warehouses from.
+        auth: Authentication instance for getting headers.
+
+    Returns:
+        List of tuples containing warehouse IDs and display names.
+    """
+    url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/warehouses"
+
+    try:
+        response = requests.get(url, headers=auth.get_headers())
+        response.raise_for_status()
+
+        response_data = response.json()
+        warehouse_list = []
+
+        for warehouse in response_data.get("value", []):
+            warehouse_id = warehouse.get("id")
+            display_name = warehouse.get("displayName")
+            if warehouse_id and display_name:
+                warehouse_list.append((warehouse_id, display_name))
+
+        return warehouse_list
+
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error fetching warehouses: {str(e)}"
+        if e.response.content:
+            error_msg += f"\nResponse: {e.response.content.decode()}"
         raise requests.exceptions.HTTPError(error_msg)

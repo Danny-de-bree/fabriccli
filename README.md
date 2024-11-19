@@ -7,14 +7,17 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 - Create new workspaces
 - List existing workspaces
 - Provision identities for workspaces (is done when when creating new workspaces)
+- Assign capacity to workspaces
+- Create Lakehouses
+- List Lakehouses
+- Create Warehoues (gives a error, but works)
+- List Warehouses
 
 ## 📝 TODOs
 
-- [ ] Pass capacity_id from api to the create_workspace function.
-        - What do we do if there are multiple capacity_ids?
-
 - [ ] Add AAD group to workspace
-        - Very hard need to investigate more.
+
+- [X] Create Lakehoues
 
 - [ ] Add authentication with SPN
     - Investigate how to authenticate with SPN.
@@ -24,6 +27,8 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 - [ ] Clean some print statements and add logging.
 
 - [ ] Add tests for the functions.
+
+- [ ] Login in CLI, some format problems. So now set env var plz.
 
 ## 🛠 Prerequisites
 
