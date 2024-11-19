@@ -2,6 +2,7 @@ import unittest
 import os
 from fabric_cli.auth import Auth
 
+
 class TestAuth(unittest.TestCase):
 
     def setUp(self):
@@ -30,6 +31,7 @@ class TestAuth(unittest.TestCase):
         headers = self.auth.get_headers()
         self.assertEqual(headers["Authorization"], f"Bearer {self.test_token}")
         self.assertEqual(headers["Content-Type"], "application/json")
+
 
 if __name__ == "__main__":
     unittest.main()

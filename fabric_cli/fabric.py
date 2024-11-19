@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def create_workspace(display_name: str, auth: "Auth", capacity_id: Optional[str] = None) -> str:
     """
     Creates a new workspace in the Microsoft Fabric API.

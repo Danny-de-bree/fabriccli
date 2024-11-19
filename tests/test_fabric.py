@@ -12,6 +12,7 @@ from fabric_cli.fabric import (
     get_warehouses,
 )
 
+
 class TestFabric(unittest.TestCase):
 
     def setUp(self):
@@ -30,7 +31,7 @@ class TestFabric(unittest.TestCase):
         mock_post.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/",
             json={"displayName": "Test Workspace"},
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.get")
@@ -38,17 +39,14 @@ class TestFabric(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
-            "value": [
-                {"id": "12345", "displayName": "Test Workspace", "capacityId": "67890"}
-            ]
+            "value": [{"id": "12345", "displayName": "Test Workspace", "capacityId": "67890"}]
         }
         mock_get.return_value = mock_response
 
         workspaces = get_workspaces(self.auth)
         self.assertEqual(workspaces, [("12345", "Test Workspace", "67890")])
         mock_get.assert_called_once_with(
-            "https://api.fabric.microsoft.com/v1/workspaces",
-            headers=self.auth.get_headers()
+            "https://api.fabric.microsoft.com/v1/workspaces", headers=self.auth.get_headers()
         )
 
     @patch("fabric_cli.fabric.requests.post")
@@ -61,7 +59,7 @@ class TestFabric(unittest.TestCase):
         self.assertTrue(result)
         mock_post.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/provisionIdentity",
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.post")
@@ -75,7 +73,7 @@ class TestFabric(unittest.TestCase):
         mock_post.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/assignToCapacity",
             json={"capacityId": "67890"},
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.post")
@@ -90,7 +88,7 @@ class TestFabric(unittest.TestCase):
         mock_post.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/lakehouses",
             json={"displayName": "Test Lakehouse"},
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.get")
@@ -98,9 +96,7 @@ class TestFabric(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
-            "value": [
-                {"id": "lakehouse123", "displayName": "Test Lakehouse"}
-            ]
+            "value": [{"id": "lakehouse123", "displayName": "Test Lakehouse"}]
         }
         mock_get.return_value = mock_response
 
@@ -108,7 +104,7 @@ class TestFabric(unittest.TestCase):
         self.assertEqual(lakehouses, [("lakehouse123", "Test Lakehouse")])
         mock_get.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/lakehouses",
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.post")
@@ -123,7 +119,7 @@ class TestFabric(unittest.TestCase):
         mock_post.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/warehouses",
             json={"displayName": "Test Warehouse"},
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
 
     @patch("fabric_cli.fabric.requests.get")
@@ -131,9 +127,7 @@ class TestFabric(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
-            "value": [
-                {"id": "warehouse123", "displayName": "Test Warehouse"}
-            ]
+            "value": [{"id": "warehouse123", "displayName": "Test Warehouse"}]
         }
         mock_get.return_value = mock_response
 
@@ -141,8 +135,9 @@ class TestFabric(unittest.TestCase):
         self.assertEqual(warehouses, [("warehouse123", "Test Warehouse")])
         mock_get.assert_called_once_with(
             "https://api.fabric.microsoft.com/v1/workspaces/12345/warehouses",
-            headers=self.auth.get_headers()
+            headers=self.auth.get_headers(),
         )
+
 
 if __name__ == "__main__":
     unittest.main()

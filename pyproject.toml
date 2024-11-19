@@ -35,16 +35,3 @@ fabric = "fabric_cli:main"
 
 [tool.black]
 line-length = 100
-
-[tool.flake8]
-max-line-length = 100
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    "venv",
-]
-ignore = [
-    "F401", #strange error with main
-]
