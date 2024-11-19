@@ -27,7 +27,7 @@ jobs:
       run: black .
 
     - name: Lint code with flake8
-      run: flake8 --config=pyproject.toml
+      run: flake8
 
     - name: Run tests with pytest
       run: pytest
