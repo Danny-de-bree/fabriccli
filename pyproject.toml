@@ -45,3 +45,6 @@ exclude = [
     "dist",
     "venv",
 ]
+ignore = [
+    "F401", #strange error with main
+]

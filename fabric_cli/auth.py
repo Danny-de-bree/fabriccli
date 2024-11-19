@@ -15,7 +15,7 @@ class Auth:
     @classmethod
     def set_token(cls, token):
         cls._token = token.strip()
-        logger.debug(f"Token set")
+        logger.debug("Token set")
 
     def get_access_token(self):
         # First check in-memory token
