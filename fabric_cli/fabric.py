@@ -50,10 +50,9 @@ def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
         requests.exceptions.HTTPError: If the API request fails.
     """
     url = "https://api.fabric.microsoft.com/v1/workspaces"
-    params = {"api-version": "2023-11-01"}
 
     try:
-        response = requests.get(url, params=params, headers=auth.get_headers())
+        response = requests.get(url, headers=auth.get_headers())
         response.raise_for_status()
 
         response_data = response.json()

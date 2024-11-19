@@ -27,6 +27,7 @@ dependencies = [
 dev = [
     "black",
     "flake8",
+    "pytest",
 ]
 
 [project.scripts]
