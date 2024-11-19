@@ -14,7 +14,6 @@ from fabric_cli.fabric import (
 
 
 class TestFabric(unittest.TestCase):
-
     def setUp(self):
         self.auth = Auth()
         self.auth.set_token("test_token")

@@ -4,7 +4,6 @@ from fabric_cli.auth import Auth
 
 
 class TestAuth(unittest.TestCase):
-
     def setUp(self):
         self.auth = Auth()
         self.test_token = "test_token"

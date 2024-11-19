@@ -61,7 +61,7 @@ To install FabricCLI locally:
 1. Clone the repository and navigate to the project directory: (works not yey will do later )
 
 ```bash
-git clone https://github.com/Danny-de-bree/fabriccli.git 
+git clone https://github.com/Danny-de-bree/fabriccli.git
 cd fabriccli
 ```
 
@@ -134,5 +134,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-Author: Danny de Bree  
+Author: Danny de Bree
 Email: [d.debree@rubicon.nl](mailto:d.debree@rubicon.nl)
