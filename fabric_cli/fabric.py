@@ -88,7 +88,7 @@ def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
         raise requests.exceptions.HTTPError(error_msg)
 
 
-def provision_workspace_identity(workspace_id, auth: "Auth"):
+def provision_workspace_identity(workspace_id: str, auth: "Auth") -> bool:
     """
     Provision an identity for a specified workspace.
 

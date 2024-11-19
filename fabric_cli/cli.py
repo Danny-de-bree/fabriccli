@@ -127,6 +127,7 @@ def list_workspaces():
 
 @display.command(name="lakehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
+@click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
 def list_lakehouses(workspace_id):
     """List all lakehouses in a workspace"""
     auth = Auth()
@@ -144,6 +145,7 @@ def list_lakehouses(workspace_id):
 
 
 @display.command(name="warehouses")
+@click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 @click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 def list_warehouses(workspace_id):
     """List all warehouses in a workspace"""

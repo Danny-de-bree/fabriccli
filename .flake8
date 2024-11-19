@@ -8,3 +8,4 @@ exclude =
     venv
 ignore =
     F401
+    E231
