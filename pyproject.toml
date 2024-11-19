@@ -28,6 +28,7 @@ dev = [
     "black",
     "flake8",
     "pytest",
+    "pre-commit"
 ]
 
 [project.scripts]
