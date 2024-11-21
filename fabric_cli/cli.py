@@ -71,16 +71,13 @@ def workspace(name, capacity_id, provision_identity):
 @create.command()
 @click.argument("name")
 @click.option("--workspace-id", required=True, help="Workspace ID where to create the lakehouse")
-@click.option("--description", help="Optional description for the lakehouse")
 def lakehouse(name, workspace_id):
     """Create a new lakehouse in a workspace"""
     try:
         auth = Auth()
-
         lakehouse_id = create_lakehouse(workspace_id, name, auth)
         click.echo(f"Created lakehouse '{name}' with ID: {lakehouse_id}")
         return lakehouse_id
-
     except Exception as e:
         click.echo(f"Error: {e}")
         return None
@@ -127,7 +124,6 @@ def list_workspaces():
 
 @display.command(name="lakehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
-@click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
 def list_lakehouses(workspace_id):
     """List all lakehouses in a workspace"""
     auth = Auth()
@@ -145,7 +141,6 @@ def list_lakehouses(workspace_id):
 
 
 @display.command(name="warehouses")
-@click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 @click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 def list_warehouses(workspace_id):
     """List all warehouses in a workspace"""
