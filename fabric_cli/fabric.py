@@ -49,7 +49,7 @@ def create_workspace(display_name: str, auth: "Auth", capacity_id: Optional[str]
         raise requests.exceptions.HTTPError(error_msg)
 
 
-def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
+def get_workspaces(auth: "Auth") -> List[Tuple[str, str, str]]:
     """
     Fetches the list of workspace IDs and display names.
 
@@ -57,7 +57,7 @@ def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
         auth: Authentication instance for getting headers.
 
     Returns:
-        List of tuples containing workspace IDs and display names.
+        List of tuples containing workspace IDs, display names, and capacity IDs.
 
     Raises:
         requests.exceptions.HTTPError: If the API request fails.
@@ -85,98 +85,80 @@ def get_workspaces(auth: "Auth") -> List[Tuple[str, str]]:
         error_msg = f"Error fetching workspaces: {str(e)}"
         if e.response and e.response.content:
             error_msg += f"\nResponse: {e.response.content.decode()}"
+        logger.error(error_msg)
         raise requests.exceptions.HTTPError(error_msg)
 
 
 def provision_workspace_identity(workspace_id: str, auth: "Auth") -> bool:
     """
-    Provision an identity for a specified workspace.
+    Provisions an identity for the specified workspace.
 
     Args:
-        workspace_id (str): The ID of the workspace for which to provision an identity.
-        auth (Auth): Authentication instance for getting headers.
+        workspace_id: The ID of the workspace.
+        auth: Authentication instance for getting headers.
 
     Returns:
-        bool: True if the identity was successfully provisioned; raises an error otherwise.
+        bool: True if the identity was provisioned successfully.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/provisionIdentity"
-
-    # Send the POST request to provision the identity
+    logger.debug(f"Provisioning identity for workspace ID: {workspace_id}")
     response = requests.post(url, headers=auth.get_headers())
-
-    try:
-        response.raise_for_status()
-        return True
-    except requests.exceptions.HTTPError as err:
-        error_msg = f"Error provisioning identity for workspace {workspace_id}: {err}"
-        if response.content:
-            error_msg += f"\nResponse: {response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    response.raise_for_status()
+    logger.debug(f"Identity provisioned for workspace ID: {workspace_id}")
+    return True
 
 
 def assign_workspace_to_capacity(workspace_id: str, capacity_id: str, auth: "Auth") -> bool:
     """
-    Assign a workspace to a capacity.
+    Assigns the specified workspace to a capacity.
 
     Args:
-        workspace_id (str): The ID of the workspace to assign
-        capacity_id (str): The ID of the capacity to assign the workspace to
-        auth (Auth): Authentication instance for getting headers
+        workspace_id: The ID of the workspace.
+        capacity_id: The ID of the capacity.
+        auth: Authentication instance for getting headers.
 
     Returns:
-        bool: True if successfully assigned, raises an error otherwise
+        bool: True if the workspace was assigned to the capacity successfully.
 
     Raises:
-        requests.exceptions.HTTPError: If the API request fails
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/assignToCapacity"
-
-    payload = {"capacityId": capacity_id}
-
-    response = requests.post(url, json=payload, headers=auth.get_headers())
-
-    try:
-        response.raise_for_status()
-        return True
-    except requests.exceptions.HTTPError as err:
-        error_msg = f"Error assigning workspace {workspace_id} to capacity {capacity_id}: {err}"
-        if response.content:
-            error_msg += f"\nResponse: {response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    json_payload = {"capacityId": capacity_id}
+    logger.debug(f"Assigning workspace ID {workspace_id} to capacity ID {capacity_id}")
+    response = requests.post(url, json=json_payload, headers=auth.get_headers())
+    response.raise_for_status()
+    logger.debug(f"Workspace ID {workspace_id} assigned to capacity ID {capacity_id}")
+    return True
 
 
-def create_lakehouse(
-    workspace_id: str, display_name: str, auth: "Auth", description: str = None
-) -> str:
-    """Creates a new lakehouse in the specified workspace.
+def create_lakehouse(workspace_id: str, display_name: str, auth: "Auth") -> str:
+    """
+    Creates a new lakehouse in the specified workspace.
 
     Args:
-        workspace_id: The ID of the workspace to create the lakehouse in.
+        workspace_id: The ID of the workspace.
         display_name: The display name for the new lakehouse.
         auth: Authentication instance for getting headers.
-        description: Optional description for the lakehouse.
 
     Returns:
         str: The ID of the created lakehouse.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/lakehouses"
-
     json_payload = {"displayName": display_name}
-
-    if description:
-        json_payload["description"] = description
-
+    logger.debug(f"Creating lakehouse with payload: {json_payload}")
     response = requests.post(url, json=json_payload, headers=auth.get_headers())
-
-    try:
-        response.raise_for_status()
-        response_data = response.json()
-        return response_data["id"]
-    except requests.exceptions.HTTPError as e:
-        error_msg = f"Error creating lakehouse: {str(e)}"
-        if e.response.content:
-            error_msg += f"\nResponse: {e.response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    response.raise_for_status()
+    response_data = response.json()
+    lakehouse_id = response_data["id"]
+    logger.debug(f"Lakehouse created with ID: {lakehouse_id}")
+    return lakehouse_id
 
 
 def get_lakehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
@@ -189,61 +171,52 @@ def get_lakehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
 
     Returns:
         List of tuples containing lakehouse IDs and display names.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/lakehouses"
+    logger.debug(f"Fetching lakehouses for workspace ID: {workspace_id}")
+    response = requests.get(url, headers=auth.get_headers())
+    response.raise_for_status()
 
-    try:
-        response = requests.get(url, headers=auth.get_headers())
-        response.raise_for_status()
+    response_data = response.json()
+    lakehouse_list = []
 
-        response_data = response.json()
-        lakehouse_list = []
+    for lakehouse in response_data.get("value", []):
+        lakehouse_id = lakehouse.get("id")
+        display_name = lakehouse.get("displayName")
+        if lakehouse_id and display_name:
+            lakehouse_list.append((lakehouse_id, display_name))
 
-        for lakehouse in response_data.get("value", []):
-            lakehouse_id = lakehouse.get("id")
-            display_name = lakehouse.get("displayName")
-            if lakehouse_id and display_name:
-                lakehouse_list.append((lakehouse_id, display_name))
-
-        return lakehouse_list
-
-    except requests.exceptions.HTTPError as e:
-        error_msg = f"Error fetching lakehouses: {str(e)}"
-        if e.response.content:
-            error_msg += f"\nResponse: {e.response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    logger.debug(f"Fetched lakehouses: {lakehouse_list}")
+    return lakehouse_list
 
 
 def create_warehouse(workspace_id: str, display_name: str, auth: "Auth") -> str:
-    """Creates a new warehouse in the specified workspace.
+    """
+    Creates a new warehouse in the specified workspace.
 
     Args:
-        workspace_id: The ID of the workspace to create the warehouse in.
+        workspace_id: The ID of the workspace.
         display_name: The display name for the new warehouse.
         auth: Authentication instance for getting headers.
 
     Returns:
         str: The ID of the created warehouse.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/warehouses"
-
     json_payload = {"displayName": display_name}
-
-    headers = auth.get_headers()
-
-    response = requests.post(url, json=json_payload, headers=headers)
-
-    try:
-        response.raise_for_status()
-        response_data = response.json()
-        if not response_data:
-            raise ValueError("Empty response received")
-        return response_data["id"]
-    except requests.exceptions.HTTPError as e:
-        error_msg = f"Error creating warehouse: {str(e)}"
-        if e.response.content:
-            error_msg += f"\nResponse: {e.response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    logger.debug(f"Creating warehouse with payload: {json_payload}")
+    response = requests.post(url, json=json_payload, headers=auth.get_headers())
+    response.raise_for_status()
+    response_data = response.json()
+    warehouse_id = response_data["id"]
+    logger.debug(f"Warehouse created with ID: {warehouse_id}")
+    return warehouse_id
 
 
 def get_warehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
@@ -256,26 +229,25 @@ def get_warehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
 
     Returns:
         List of tuples containing warehouse IDs and display names.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API request fails.
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/warehouses"
+    logger.debug(f"Fetching warehouses for workspace ID: {workspace_id}")
+    headers = auth.get_headers()
+    logger.debug(f"Request headers: {headers}")
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
 
-    try:
-        response = requests.get(url, headers=auth.get_headers())
-        response.raise_for_status()
+    response_data = response.json()
+    warehouse_list = []
 
-        response_data = response.json()
-        warehouse_list = []
+    for warehouse in response_data.get("value", []):
+        warehouse_id = warehouse.get("id")
+        display_name = warehouse.get("displayName")
+        if warehouse_id and display_name:
+            warehouse_list.append((warehouse_id, display_name))
 
-        for warehouse in response_data.get("value", []):
-            warehouse_id = warehouse.get("id")
-            display_name = warehouse.get("displayName")
-            if warehouse_id and display_name:
-                warehouse_list.append((warehouse_id, display_name))
-
-        return warehouse_list
-
-    except requests.exceptions.HTTPError as e:
-        error_msg = f"Error fetching warehouses: {str(e)}"
-        if e.response.content:
-            error_msg += f"\nResponse: {e.response.content.decode()}"
-        raise requests.exceptions.HTTPError(error_msg)
+    logger.debug(f"Fetched warehouses: {warehouse_list}")
+    return warehouse_list

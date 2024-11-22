@@ -19,7 +19,7 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 
 - [X] Create Lakehoues
 
-- [ ] Add authentication with SPN
+- [X] Add authentication with SPN
     - Investigate how to authenticate with SPN.
 
 - [ ] Add shortcut with OneLake from storage account.
@@ -28,16 +28,20 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 
 - [X] Add tests for the functions.
 
-- [ ] Login in CLI, some format problems. So now set env var plz.
+- [X] Login in CLI, some format problems.
 
 ## 🛠 Prerequisites
 
-- Python 3.6 or higher
+- Python 3.10 or higher
 - Microsoft Fabric Access Token
+
+## 🔑 Obtaining and giving rights to SPN
+
+#TODO
 
 ## 🔑 Obtaining the Access Token
 
-To use FabricCLI with Microsoft Fabric, you need a valid bearer token. Tokens are short-lived and need to be periodically updated.
+When not using a SPN, you can use a Power BI token.
 
 ### Steps to Obtain the Bearer Token:
 
