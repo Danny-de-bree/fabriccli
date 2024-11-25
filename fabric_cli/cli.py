@@ -87,13 +87,13 @@ def workspace(name, capacity_id, provision_identity):
         # If capacity ID provided, assign it
         if capacity_id:
             assign_workspace_to_capacity(workspace_id, capacity_id, auth)
-            click.echo(f"Assigned workspace to capacity {capacity_id}")
+            click.echo(f" ✅ Assigned workspace to capacity {capacity_id}")
             logger.debug(f"Assigned workspace to capacity {capacity_id}")
 
         # Provision identity if requested
         if provision_identity:
             provision_workspace_identity(workspace_id, auth)
-            click.echo(f"Successfully provisioned identity for workspace '{name}'")
+            click.echo(f" ✅ Successfully provisioned identity for workspace '{name}'")
             logger.debug(f"Provisioned identity for workspace '{name}'")
 
         return workspace_id
@@ -111,7 +111,7 @@ def lakehouse(name, workspace_id):
     """Create a new lakehouse in a workspace"""
     try:
         lakehouse_id = create_lakehouse(workspace_id, name, auth)
-        click.echo(f"Created lakehouse '{name}' with ID: {lakehouse_id}")
+        click.echo(f" ✅ Created lakehouse '{name}' with ID: {lakehouse_id}")
         logger.debug(f"Lakehouse created with ID: {lakehouse_id}")
         return lakehouse_id
     except Exception as e:
@@ -127,7 +127,7 @@ def warehouse(name, workspace_id):
     """Create a new warehouse in a workspace"""
     try:
         warehouse_id = create_warehouse(workspace_id, name, auth)
-        click.echo(f"Created warehouse '{name}' with ID: {warehouse_id}")
+        click.echo(f" ✅ Created warehouse '{name}' with ID: {warehouse_id}")
         logger.debug(f"Warehouse created with ID: {warehouse_id}")
         return warehouse_id
     except Exception as e:
