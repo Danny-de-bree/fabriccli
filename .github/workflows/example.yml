@@ -25,12 +25,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e .
-        pip list
 
     - name: Run CLI commands
       run: |
-        python -m fabric
-        python -m fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
-        python -m fabric_cli create workspace Rubicon  --capacity-id e038f4a7-714a-4f51-a277-7965e8a7d036 --provision-identity
-        python -m fabric_cli fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
-        python -m fabric create lakehouse Rubicon --workspace-id 09b786a5-4ad4-4967-84c5-12c1fe6553ca
+        fabric
+        fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
+        fabric_cli create workspace Rubicon  --capacity-id e038f4a7-714a-4f51-a277-7965e8a7d036 --provision-identity
+        fabric_cli fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
+        fabric create lakehouse Rubicon --workspace-id 09b786a5-4ad4-4967-84c5-12c1fe6553ca
