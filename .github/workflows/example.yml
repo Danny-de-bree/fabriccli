@@ -31,4 +31,4 @@ jobs:
         fabric
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
-        fabric create lakehouse rubicon --workspace-id 09b786a5-4ad4-4967-84c5-12c1fe6553ca
+        fabric create lakehouse rubicon --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
