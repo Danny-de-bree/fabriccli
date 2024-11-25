@@ -1,6 +1,14 @@
-# FabricCLI
+# Fabric CLI by Rubicon
 
-FabricCLI is a powerful command-line tool for managing workspaces on the Microsoft Fabric platform. It provides options to create, list, and provision identities for workspaces, making your workflow more efficient and streamlined.
+Fabric CLI is a powerful command-line tool for managing workspaces on the Microsoft Fabric platform. It provides options to create, list, and provision identities for workspaces, making your workflow more efficient and streamlined.
+
+The current state of the Microsoft Fabric is documented on the following URL:
+
+https://learn.microsoft.com/en-us/rest/api/fabric/articles/
+
+Not all API endpoints are SPN supported. :(
+
+If not use short lived token that you can copy from the browser.
 
 ## 🚀 Features (MORE TO COME)
 
@@ -10,30 +18,22 @@ FabricCLI is a powerful command-line tool for managing workspaces on the Microso
 - Assign capacity to workspaces (is done when when creating new workspaces)
 - Create Lakehouses
 - List Lakehouses
-- Create Warehoues (gives a error, but works)
-- List Warehouses
+- Create Warehoues (gives a error, but works) (SPN doesnt work)
+- List Warehouses (SPN doesnt work)
+- Add Git repo
 
 ## 📝 TODOs
 
 - [ ] Add AAD group to workspace
 
-- [X] Create Lakehoues
-
-- [X] Add authentication with SPN
-    - Investigate how to authenticate with SPN.
-
 - [ ] Add shortcut with OneLake from storage account.
 
-- [X] Clean some print statements and add logging.
-
-- [X] Add tests for the functions.
-
-- [X] Login in CLI, some format problems.
+- [ ] Pause and Resume capacity (80% working)
 
 ## 🛠 Prerequisites
 
 - Python 3.10 or higher
-- Microsoft Fabric Access Token
+- Microsoft Fabric Access Token or SPN
 
 ## 🔑 Obtaining and giving rights to SPN
 
@@ -49,7 +49,7 @@ When not using a SPN, you can use a Power BI token.
 2. Log in with your Microsoft Fabric credentials.
 3. Open the browser's developer tools by pressing `F12`.
 4. In the developer tools, press `Ctrl + F` (or `Cmd + F` on Mac) to open the search bar.
-5. Search for `powerBIAccessToken` among the network requests.
+5. Search for `powerBIAccessToken`.
 6. Copy the token value, then set it as an environment variable named `POWER_BI_ACCESS_TOKEN` in your terminal or IDE.
 
 ```bash
@@ -74,55 +74,6 @@ cd fabriccli
 ```bash
 pip install -e .
 ```
-
-## 📝 Usage
-
-### Creating Workspaces
-
-```bash
-fabric create workspace "Workspace Name" --capacity-id "Capacity ID" --provision-identity
-```
-
-Capacity-id you will get with listing workspaces.
-
-### Listing Workspaces
-
-```bash
-fabric display workspaces
-```
-
-## Create Lakehouses
-
-```bash
-fabric create lakehouse "Display Name" workspace-id "Workspace ID"
-```
-
-Workspace-id you will get with listing workspaces.
-
-## Listing Lakehouses
-
-```bash
-fabric display lakehouses --workspace-id "Workspace ID"
-```
-
-Workspace-id you will get with listing workspaces.
-
-## Create Warehouses
-
-```bash
-fabric create warehouse "Display Name" --workspace-id "Workspace ID"
-```
-
-(gives a error, but works)
-
-
-## Listing Warehouses
-
-```bash
-fabric display warehouses --workspace-id "Workspace ID"
-```
-
-Workspace-id you will get with listing workspaces.
 
 ## 📖 Documentation
 

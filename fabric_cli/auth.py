@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SPNConfig:
+    """
+    Service Principal configuration for Azure AD authentication.
+
+    Attributes:
+        client_id (str): The client ID of the Azure AD application.
+        client_secret (str): The client secret of the Azure AD application.
+        tenant_id (str): The tenant ID of the Azure AD.
+        authority (str): The authority URL for Azure AD ,
+        (default: "https://login.microsoftonline.com").
+    """
+
     client_id: str
     client_secret: str
     tenant_id: str
@@ -19,17 +30,37 @@ class SPNConfig:
 
     @property
     def authority_url(self) -> str:
+        """Construct the authority URL using the tenant ID."""
         return f"{self.authority}/{self.tenant_id}"
 
 
 @dataclass
 class AuthState:
+    """
+    Authentication state for storing tokens and configuration.
+
+    Attributes:
+        token (Optional[str]): The access token.
+        token_expiry (Optional[datetime]): The expiry time of the access token.
+        spn_config (Optional[Dict]): The service principal configuration.
+    """
+
     token: Optional[str] = None
     token_expiry: Optional[datetime] = None
     spn_config: Optional[Dict] = None
 
 
 class FabricClient:
+    """
+    Client for interacting with the Fabric API using service principal authentication.
+
+    Attributes:
+        config (SPNConfig): The service principal configuration.
+        base_url (str): The base URL for the Fabric API.
+        _token (Optional[str]): The access token.
+        app (msal.ConfidentialClientApplication): The MSAL confidential client application.
+    """
+
     def __init__(self, config: SPNConfig):
         self.config = config
         self.base_url = "https://api.fabric.microsoft.com/v1/"
@@ -44,7 +75,12 @@ class FabricClient:
         logger.debug("MSAL ConfidentialClientApplication initialized")
 
     def get_token(self) -> str:
-        """Get token using client credentials flow"""
+        """
+        Get token using client credentials flow.
+
+        Returns:
+            str: The access token.
+        """
         if not self._token:
             # Define scope for Fabric API with .default suffix
             scope = ["https://api.fabric.microsoft.com/.default"]
@@ -67,6 +103,13 @@ class FabricClient:
 
 
 class Auth:
+    """
+    Singleton class for managing Azure AD authentication.
+
+    This class handles loading and saving the authentication state, setting tokens,
+    refreshing tokens, and generating headers for authenticated requests.
+    """
+
     _instance = None
     _state = AuthState()
     _state_file = Path(os.path.expanduser("~/.fabric/auth_state.json"))
@@ -79,7 +122,7 @@ class Auth:
 
     @classmethod
     def _load_state(cls):
-        """Load authentication state from file"""
+        """Load authentication state from file."""
         try:
             if cls._state_file.exists():
                 with open(cls._state_file) as f:
@@ -99,7 +142,7 @@ class Auth:
 
     @classmethod
     def _save_state(cls):
-        """Save authentication state to file"""
+        """Save authentication state to file."""
         try:
             cls._state_file.parent.mkdir(parents=True, exist_ok=True)
             state_dict = {
@@ -117,7 +160,12 @@ class Auth:
 
     @classmethod
     def set_token(cls, token: str):
-        """Set a token manually with a default expiry of 1 hour"""
+        """
+        Set a token manually with a default expiry of 1 hour.
+
+        Args:
+            token (str): The access token.
+        """
         logger.debug("Setting token manually...")
         cls._state.token = token.strip()
         cls._state.token_expiry = datetime.now() + timedelta(hours=1)
@@ -126,7 +174,12 @@ class Auth:
 
     @classmethod
     def set_spn_config(cls, config: SPNConfig):
-        """Configure service principal authentication"""
+        """
+        Configure service principal authentication.
+
+        Args:
+            config (SPNConfig): The service principal configuration.
+        """
         logger.debug("Setting SPN config...")
         cls._state.spn_config = {
             "client_id": config.client_id,
@@ -152,7 +205,7 @@ class Auth:
         logger.debug(f"SPN client configured with client_id: {config.client_id}")
 
     def _refresh_token(self):
-        """Internal method to refresh the token using SPN config"""
+        """Internal method to refresh the token using SPN config."""
         if not self._state.spn_config:
             raise ValueError("No SPN configuration available")
 
@@ -174,13 +227,23 @@ class Auth:
         )
 
     def _is_token_valid(self) -> bool:
-        """Check if the current token is valid"""
+        """
+        Check if the current token is valid.
+
+        Returns:
+            bool: True if the token is valid, False otherwise.
+        """
         if not self._state.token or not self._state.token_expiry:
             return False
         return datetime.now() < self._state.token_expiry
 
     def get_access_token(self) -> str:
-        """Get a valid access token, refreshing if necessary"""
+        """
+        Get a valid access token, refreshing if necessary.
+
+        Returns:
+            str: The access token.
+        """
         logger.debug("Getting access token...")
 
         # First try environment variable
@@ -203,16 +266,27 @@ class Auth:
         return self._state.token
 
     def get_headers(self) -> Dict[str, str]:
-        """Get headers with a valid access token"""
+        """
+        Get headers with a valid access token.
+
+        Returns:
+            Dict[str, str]: The headers for authenticated requests.
+        """
         token = self.get_access_token()
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
         logger.debug("Generated headers with valid token")
+        logger.debug(headers)
         return headers
 
     @classmethod
     def get_state(cls):
-        """Get the current state of the Auth class"""
+        """
+        Get the current state of the Auth class.
+
+        Returns:
+            AuthState: The current authentication state.
+        """
         return cls._state
