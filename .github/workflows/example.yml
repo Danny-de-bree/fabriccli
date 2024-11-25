@@ -30,6 +30,6 @@ jobs:
       run: |
         fabric
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
-        fabric_cli create workspace Rubicon  --capacity-id e038f4a7-714a-4f51-a277-7965e8a7d036 --provision-identity
-        fabric_cli fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
-        fabric create lakehouse Rubicon --workspace-id 09b786a5-4ad4-4967-84c5-12c1fe6553ca
+        fabric create workspace rubicon --capacity-id e038f4a7-714a-4f51-a277-7965e8a7d036 --provision-identity
+        fabric fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
+        fabric create lakehouse rubicon --workspace-id 09b786a5-4ad4-4967-84c5-12c1fe6553ca
