@@ -31,6 +31,12 @@ jobs:
         fabric
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity resume --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
+
+    - name: Sleep for 30 seconds
+      run: sleep 30
+
+    - name: Run CLI commands
+      run: |
         fabric display lakehouses --workspace-id ${{ secrets.WORKSPACE_ID }}
         fabric create lakehouse rubicon --workspace-id ${{ secrets.WORKSPACE_ID }}
         fabric capacity suspend --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
