@@ -125,7 +125,7 @@ def lakehouse(name, workspace_id):
 @click.argument("name")
 @click.option("--workspace-id", required=True, help="Workspace ID where to create the warehouse")
 def warehouse(name, workspace_id):
-    """Create a new warehouse in a workspace"""
+    """Create a new warehouse in a workspace !!not working with SPN!!"""
     try:
         warehouse_id = create_warehouse(workspace_id, name, auth)
         click.echo(f"✅ Created warehouse '{name}' with ID: {warehouse_id}")
@@ -184,7 +184,7 @@ def list_lakehouses(workspace_id):
 @display.command(name="warehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 def list_warehouses(workspace_id):
-    """List all warehouses in a workspace"""
+    """List all warehouses in a workspace !!not working with SPN!!"""
     logger.debug(f"Current state: {auth.get_state()}")
     try:
         warehouses = get_warehouses(workspace_id, auth)
@@ -214,10 +214,7 @@ def capacity():
 def suspend_capacity_cli(subscription_id, resource_group_name, dedicated_capacity_name):
     """Suspend a dedicated capacity in Azure"""
     try:
-        token = auth.get_access_token("https://management.azure.com/")
-        response = suspend_capacity(
-            subscription_id, resource_group_name, dedicated_capacity_name, token
-        )
+        response = suspend_capacity(subscription_id, resource_group_name, dedicated_capacity_name)
         click.echo(f"✅ Successfully suspended capacity '{dedicated_capacity_name}'")
         click.echo(response)
     except Exception as e:
@@ -232,10 +229,7 @@ def suspend_capacity_cli(subscription_id, resource_group_name, dedicated_capacit
 def resume_capacity_cli(subscription_id, resource_group_name, dedicated_capacity_name):
     """Resume a dedicated capacity in Azure"""
     try:
-        token = auth.get_access_token("https://management.azure.com/")
-        response = resume_capacity(
-            subscription_id, resource_group_name, dedicated_capacity_name, token
-        )
+        response = resume_capacity(subscription_id, resource_group_name, dedicated_capacity_name)
         click.echo(f"✅ Successfully resumed capacity '{dedicated_capacity_name}'")
         click.echo(response)
     except Exception as e:

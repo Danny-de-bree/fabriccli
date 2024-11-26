@@ -1,34 +1,57 @@
 # Fabric CLI by Rubicon
 
-Fabric CLI is a powerful command-line tool for managing workspaces on the Microsoft Fabric platform. It provides options to create, list, and provision identities for workspaces, making your workflow more efficient and streamlined.
+To roll-out Fabric as a code we have developed a command line interface.
 
-The current state of the Microsoft Fabric is documented on the following URL:
+## Fabric API Client
 
 https://learn.microsoft.com/en-us/rest/api/fabric/articles/
 
-Not all API endpoints are SPN supported. :(
+## Authentication
 
-If not use short lived token that you can copy from the browser.
+Not all API endpoints are SPN supported. If an endpoint is not supported by SPN, you can use a short-lived token that you can copy from the browser.
+
+Beware! If you set POWER_BI_ACCESS_TOKEN it will overwrite all other authentication methods.
+
+### Using SPN for Authentication
+
+To use SPN (Service Principal Name) for authentication, follow these steps:
+
+1. **Login with SPN**:
+    ```sh
+    fabric login-spn --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET --tenant-id YOUR_TENANT_ID
+    ```
+
+2. **Verify Token**:
+    Ensure that the token is correctly saved and used for subsequent API calls.
+
+### Using Short-Lived Token
+
+If SPN is not supported for a specific endpoint, you can use a short-lived token:
+
+1. **Get Token from Browser**:
+    - Open your browser and authenticate with your Azure AD credentials.
+    - Copy the token from the browser's developer tools.
+
+2. **Set Token Manually**:
+    - Use the copied token for your API calls.
 
 ## 🚀 Features (MORE TO COME)
 
 - Create new workspaces
 - List existing workspaces
-- Provision identities for workspaces (is done when when creating new workspaces)
-- Assign capacity to workspaces (is done when when creating new workspaces)
+- Provision identities for workspaces (is done when creating new workspaces)
+- Assign capacity to workspaces (is done when creating new workspaces)
 - Create Lakehouses
 - List Lakehouses
-- Create Warehoues (gives a error, but works) (SPN doesnt work)
-- List Warehouses (SPN doesnt work)
+- Create Warehouses (gives an error, but works) (SPN doesn't work)
+- List Warehouses (SPN doesn't work)
 - Add Git repo
+- Pause and Resume capacity
 
 ## 📝 TODOs
 
 - [ ] Add AAD group to workspace
-
-- [ ] Add shortcut with OneLake from storage account.
-
-- [ ] Pause and Resume capacity (80% working)
+- [ ] Add shortcut with OneLake from storage account
 
 ## 🛠 Prerequisites
 

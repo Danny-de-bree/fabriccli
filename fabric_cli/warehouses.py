@@ -26,7 +26,7 @@ def create_warehouse(workspace_id: str, display_name: str, auth: Auth) -> str:
 
     try:
         logger.debug(f"Creating warehouse with payload: {json_payload}")
-        response = requests.post(url, json=json_payload, headers=auth.get_headers())
+        response = requests.post(url, json=json_payload, headers=auth.get_headers("fabric"))
         response.raise_for_status()
         warehouse_id = response.json()["id"]
         logger.debug(f"Warehouse created with ID: {warehouse_id}")
@@ -57,7 +57,7 @@ def get_warehouses(workspace_id: str, auth: Auth) -> List[Tuple[str, str]]:
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/warehouses"
 
     try:
-        response = requests.get(url, headers=auth.get_headers())
+        response = requests.get(url, headers=auth.get_headers("fabric"))
         response.raise_for_status()
         warehouses = response.json().get("value", [])
         return [(wh["id"], wh["displayName"]) for wh in warehouses]

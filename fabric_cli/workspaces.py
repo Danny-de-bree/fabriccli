@@ -30,7 +30,7 @@ def create_workspace(display_name: str, auth: Auth, capacity_id: Optional[str] =
 
     try:
         logger.debug(f"Creating workspace with payload: {json_payload}")
-        response = requests.post(url, json=json_payload, headers=auth.get_headers())
+        response = requests.post(url, json=json_payload, headers=auth.get_headers("fabric"))
         response.raise_for_status()
         location_header = response.headers.get("Location")
         if not location_header:
@@ -68,14 +68,14 @@ def get_workspaces(auth: Auth) -> List[Tuple[str, str, str]]:
         logger.info(f"Attempting to fetch workspaces from URL: {url}")
 
         # Get and log headers (without exposing full token)
-        headers = auth.get_headers()
+        headers = auth.get_headers("fabric")
         masked_headers = {
             k: (v[:10] + "..." if k == "Authorization" else v) for k, v in headers.items()
         }
         logger.debug(f"Request headers: {masked_headers}")
 
         # Make the API request
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=auth.get_headers("fabric"))
 
         # Log response status and basic details
         logger.info(f"Response received. Status Code: {response.status_code}")

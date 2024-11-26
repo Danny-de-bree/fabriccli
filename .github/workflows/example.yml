@@ -30,5 +30,7 @@ jobs:
       run: |
         fabric
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
-        fabric display lakehouses --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
-        fabric create lakehouse rubicon --workspace-id 38be7e93-fbb2-4ea9-9241-5fe50293d613
+        fabric capacity resume --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
+        fabric display lakehouses --workspace-id ${{ secrets.WORKSPACE_ID }}
+        fabric create lakehouse rubicon --workspace-id ${{ secrets.WORKSPACE_ID }}
+        fabric capacity suspend --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}

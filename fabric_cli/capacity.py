@@ -1,6 +1,7 @@
 import requests
 from typing import Dict
 import logging
+from .auth import Auth
 
 logger = logging.getLogger(__name__)
 
@@ -8,16 +9,15 @@ API_VERSION = "2022-07-01-preview"
 
 
 def suspend_capacity(
-    subscription_id: str, resource_group_name: str, dedicated_capacity_name: str, access_token: str
+    subscription_id: str, resource_group_name: str, dedicated_capacity_name: str
 ) -> Dict:
     """
-    Suspend a dedicated capacity in Azure.
+    Suspend a dedicated capacity.
 
     Args:
-        subscription_id: The subscription ID.
-        resource_group_name: The resource group name.
-        dedicated_capacity_name: The dedicated capacity name.
-        access_token: The access token.
+        subscription_id (str): The subscription ID.
+        resource_group_name (str): The resource group name.
+        dedicated_capacity_name (str): The dedicated capacity name.
 
     Returns:
         Dict: The response from the API.
@@ -30,13 +30,39 @@ def suspend_capacity(
         f"{resource_group_name}/providers/Microsoft.Fabric/capacities/{dedicated_capacity_name}/"
         f"suspend?api-version={API_VERSION}"
     )
-    headers = {"Authorization": f"Bearer {access_token}"}
 
     try:
+        # Log the request details
+        logger.info(f"Attempting to suspend capacity from URL: {url}")
+
+        # Get and log headers (without exposing full token)
+        auth = Auth()
+        headers = auth.get_headers("management")
+        masked_headers = {
+            k: (v[:10] + "..." if k == "Authorization" else v) for k, v in headers.items()
+        }
+        logger.debug(f"Request headers: {masked_headers}")
+
+        # Make the API request
         response = requests.post(url, headers=headers)
+
+        # Log response status and basic details
+        logger.debug(f"Response received. Status Code: {response.status_code}")
+        logger.debug(f"Response Headers: {response.headers}")
+        logger.debug(f"Response Content: {response.content}")
+
+        # Raise an exception for bad status codes
         response.raise_for_status()
-        logger.debug(f"Suspended capacity: {dedicated_capacity_name}")
-        return response.json()
+
+        # Handle empty response for 202 Accepted
+        if response.status_code == 202:
+            return logger.debug("Request accepted and is being processed asynchronously.")
+
+        # Return the response JSON if not empty
+        if response.content:
+            return response.json()
+        else:
+            return logger.debug("No content in response")
 
     except requests.exceptions.HTTPError as e:
         error_msg = f"Error suspending capacity: {str(e)}"
@@ -47,16 +73,15 @@ def suspend_capacity(
 
 
 def resume_capacity(
-    subscription_id: str, resource_group_name: str, dedicated_capacity_name: str, access_token: str
+    subscription_id: str, resource_group_name: str, dedicated_capacity_name: str
 ) -> Dict:
     """
-    Resume a dedicated capacity in Azure.
+    Resume a dedicated capacity.
 
     Args:
-        subscription_id: The subscription ID.
-        resource_group_name: The resource group name.
-        dedicated_capacity_name: The dedicated capacity name.
-        access_token: The access token.
+        subscription_id (str): The subscription ID.
+        resource_group_name (str): The resource group name.
+        dedicated_capacity_name (str): The dedicated capacity name.
 
     Returns:
         Dict: The response from the API.
@@ -67,15 +92,41 @@ def resume_capacity(
     url = (
         f"https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/"
         f"{resource_group_name}/providers/Microsoft.Fabric/capacities/{dedicated_capacity_name}/"
-        f"suspend?api-version={API_VERSION}"
+        f"resume?api-version={API_VERSION}"
     )
-    headers = {"Authorization": f"Bearer {access_token}"}
 
     try:
+        # Log the request details
+        logger.info(f"Attempting to resume capacity from URL: {url}")
+
+        # Get and log headers (without exposing full token)
+        auth = Auth()
+        headers = auth.get_headers("management")
+        masked_headers = {
+            k: (v[:10] + "..." if k == "Authorization" else v) for k, v in headers.items()
+        }
+        logger.debug(f"Request headers: {masked_headers}")
+
+        # Make the API request
         response = requests.post(url, headers=headers)
+
+        # Log response status and basic details
+        logger.debug(f"Response received. Status Code: {response.status_code}")
+        logger.debug(f"Response Headers: {response.headers}")
+        logger.debug(f"Response Content: {response.content}")
+
+        # Raise an exception for bad status codes
         response.raise_for_status()
-        logger.debug(f"Resumed capacity: {dedicated_capacity_name}")
-        return response.json()
+
+        # Handle empty response for 202 Accepted
+        if response.status_code == 202:
+            return logger.debug("Request accepted and is being processed asynchronously.")
+
+        # Return the response JSON if not empty
+        if response.content:
+            return response.json()
+        else:
+            return logger.debug("No content in response")
 
     except requests.exceptions.HTTPError as e:
         error_msg = f"Error resuming capacity: {str(e)}"

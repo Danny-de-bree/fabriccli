@@ -27,7 +27,7 @@ def connect_git_repository(
         logger.debug(
             f"Connecting workspace {workspace_id} to Git repository with payload: {json_payload}"
         )
-        response = requests.post(url, json=json_payload, headers=auth.get_headers())
+        response = requests.post(url, json=json_payload, headers=auth.get_headers("fabric"))
         response.raise_for_status()
         logger.debug(f"Workspace {workspace_id} successfully connected to Git repository")
 

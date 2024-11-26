@@ -26,7 +26,7 @@ def create_lakehouse(workspace_id: str, display_name: str, auth: Auth) -> str:
 
     try:
         logger.debug(f"Creating lakehouse with payload: {json_payload}")
-        response = requests.post(url, json=json_payload, headers=auth.get_headers())
+        response = requests.post(url, json=json_payload, headers=auth.get_headers("fabric"))
         response.raise_for_status()
         lakehouse_id = response.json()["id"]
         logger.debug(f"Lakehouse created with ID: {lakehouse_id}")
@@ -56,7 +56,7 @@ def get_lakehouses(workspace_id: str, auth: "Auth") -> List[Tuple[str, str]]:
     """
     url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/lakehouses"
     logger.debug(f"Fetching lakehouses for workspace ID: {workspace_id}")
-    response = requests.get(url, headers=auth.get_headers())
+    response = requests.get(url, headers=auth.get_headers("fabric"))
     response.raise_for_status()
 
     response_data = response.json()
