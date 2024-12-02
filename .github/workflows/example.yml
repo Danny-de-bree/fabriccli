@@ -27,8 +27,8 @@ jobs:
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity resume --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
 
-    - name: Sleep for 30 seconds
-      run: sleep 30
+    - name: Sleep for 10 seconds
+      run: sleep 10
 
     - name: Run CLI commands part 2
       run: |
