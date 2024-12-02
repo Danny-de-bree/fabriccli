@@ -1,10 +1,15 @@
-name: CI
+name: Capacity Management
 
 on:
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform (resume or suspend)'
+        required: true
+        default: 'resume'
 
 jobs:
-  build:
+  manage_capacity:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,17 +26,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .
 
-    - name: Run CLI commands
+    - name: Resume capacity
+      if: ${{ github.event.inputs.action == 'resume' }}
       run: |
-        fabric
         fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity resume --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
 
-    - name: Sleep for 30 seconds
-      run: sleep 30
-
-    - name: Run CLI commands part 2
+    - name: Suspend capacity
+      if: ${{ github.event.inputs.action == 'suspend' }}
       run: |
-        fabric display lakehouses --workspace-id ${{ secrets.WORKSPACE_ID }}
-        fabric create lakehouse test123 --workspace-id ${{ secrets.WORKSPACE_ID }}
+        fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity suspend --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
