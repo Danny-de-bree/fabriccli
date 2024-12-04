@@ -1,12 +1,8 @@
 # Fabric CLI by Rubicon
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Danny-de-bree/fabriccli/test.yml?branch=main)
-<!-- BADGIE TIME -->
-
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![code style: black](https://img.shields.io/badge/code_style-black-000000.svg)](https://github.com/psf/black)
-
-<!-- END BADGIE TIME -->
 
 To roll-out Fabric as a code we have developed a command line interface.
 
