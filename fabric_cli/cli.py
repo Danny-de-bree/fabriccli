@@ -10,7 +10,8 @@ from .workspaces import (
 from .lakehouses import create_lakehouse, get_lakehouses
 from .warehouses import create_warehouse, get_warehouses
 from .git import connect_git_repository
-from .capacity import suspend_capacity, resume_capacity
+from .capacity_management import suspend_capacity, resume_capacity
+from .capacity import get_capacities
 from .logging_config import setup_logging
 
 # Configure logging
@@ -145,14 +146,13 @@ def display():
 
 @display.command(name="workspaces")
 def list_workspaces():
-    """List all workspaces"""
+    """Display all workspaces"""
     try:
         spaces = get_workspaces(auth)
         if not spaces:
             click.echo("⚠️ No workspaces found")
             return
 
-        click.echo("\nWorkspaces:")
         for workspace_id, display_name, capacity_id in spaces:
             capacity_info = f" (Capacity ID: {capacity_id})" if capacity_id else ""
             click.echo(f"  • {display_name} (ID: {workspace_id}){capacity_info}")
@@ -165,7 +165,7 @@ def list_workspaces():
 @display.command(name="lakehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
 def list_lakehouses(workspace_id):
-    """List all lakehouses in a workspace"""
+    """Display all lakehouses in a workspace"""
     try:
         lakehouses = get_lakehouses(workspace_id, auth)
         if not lakehouses:
@@ -184,7 +184,7 @@ def list_lakehouses(workspace_id):
 @display.command(name="warehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list warehouses from")
 def list_warehouses(workspace_id):
-    """List all warehouses in a workspace !!not working with SPN!!"""
+    """Display all warehouses in a workspace !!not working with SPN!!"""
     logger.debug(f"Current state: {auth.get_state()}")
     try:
         warehouses = get_warehouses(workspace_id, auth)
@@ -199,6 +199,18 @@ def list_warehouses(workspace_id):
     except Exception as e:
         click.echo(f"❌ Error listing warehouses: {e}")
         logger.error(f"Error listing warehouses: {e}")
+
+
+@display.command(name="capacities")
+def display_capacities():
+    """Display all capacities."""
+    try:
+        capacities = get_capacities(auth)
+        for capacity_id, display_name in capacities:
+            click.echo(f"  • {display_name} (ID: {capacity_id})")
+    except Exception as e:
+        click.echo(f"❌ Error fetching capacities: {e}")
+        logger.error(f"Error fetching capacities: {e}")
 
 
 @main.group()
