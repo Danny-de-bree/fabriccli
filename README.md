@@ -51,6 +51,7 @@ If SPN is not supported for a specific endpoint, you can use a short-lived token
 - List Warehouses (SPN doesn't work)
 - Add Git repo
 - Pause and Resume capacity
+- Get capacities
 
 ## 📝 TODOs
 
