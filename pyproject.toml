@@ -21,6 +21,7 @@ dependencies = [
     "click",
     "requests",
     "msal",
+    "azure-identity",
 ]
 
 [project.optional-dependencies]
