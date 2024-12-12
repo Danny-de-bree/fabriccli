@@ -1,11 +1,12 @@
-import os
 import json
-import msal
-import logging
-from pathlib import Path
-from typing import Optional, Dict
-from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Optional, Dict
+from pathlib import Path
+import logging
+from dataclasses import dataclass
+from azure.identity import DefaultAzureCredential
+import msal
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +164,18 @@ class Auth:
         cls._save_state()
         logger.debug(f"SPN client configured with client_id: {config.client_id}")
 
+    @classmethod
+    def authenticate_with_default_credential(cls, scope: str):
+        """Authenticate using DefaultAzureCredential and set the token"""
+        try:
+            credential = DefaultAzureCredential(exclude_interactive_browser_credential=False)
+            token = credential.get_token(scope)
+            cls.set_token(token.token, "fabric")
+            logger.info(f"Authenticated with DefaultAzureCredential. Token: {token.token[:10]}...")
+        except Exception as e:
+            logger.error(f"Failed to authenticate with DefaultAzureCredential: {e}")
+            raise
+
     def _refresh_token(self, provider: str):
         """Internal method to refresh the token using SPN config"""
         if not self._state.spn_config:
@@ -206,7 +219,12 @@ class Auth:
         # Check if we need to refresh the token
         if not self._is_token_valid(provider):
             logger.debug(f"Token expired or missing for {provider}, refreshing...")
-            self._refresh_token(provider)
+            if self._state.spn_config:
+                self._refresh_token(provider)
+            else:
+                self.authenticate_with_default_credential(
+                    scope="https://api.fabric.microsoft.com/.default"
+                )
 
         token = self._state.fabric_token if provider == "fabric" else self._state.management_token
         logger.debug(f"Using token for {provider}: {token[:10]}...")
@@ -224,7 +242,10 @@ class Auth:
         return headers
 
     def __str__(self):
-        return f"Auth state: {self._state}"
+        return (
+            f"Auth(fabric_token={self._state.fabric_token}, "
+            f"management_token={self._state.management_token})"
+        )
 
     def __repr__(self):
         return self.__str__()

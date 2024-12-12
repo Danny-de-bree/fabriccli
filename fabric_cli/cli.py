@@ -35,12 +35,18 @@ def main():
     pass
 
 
-@main.command(hidden=True)
+@main.group(name="login")
+def login_group():
+    """Login to Microsoft Fabric"""
+    pass
+
+
+@login_group.command(hidden=True)
 @click.option("--token", "-t", required=True, help="Power BI access token")
-def login(token):
+def token(token):
     """Login to Microsoft Fabric using a token"""
     try:
-        auth.set_token(token, 3600)  # Assuming the token is valid for 1 hour
+        auth.set_token(token, "fabric")
         click.echo("✅ Successfully logged in with token")
         logger.debug("Token login successful")
     except Exception as e:
@@ -48,11 +54,11 @@ def login(token):
         logger.error(f"Error logging in with token: {e}")
 
 
-@main.command(hidden=True)
+@login_group.command()
 @click.option("--client-id", required=True, help="Azure AD Client ID")
 @click.option("--client-secret", required=True, help="Azure AD Client Secret")
 @click.option("--tenant-id", required=True, help="Azure AD Tenant ID")
-def login_spn(client_id, client_secret, tenant_id):
+def spn(client_id, client_secret, tenant_id):
     """Login to Microsoft Fabric using SPN"""
     try:
         logger.debug(f"Logging in with SPN: client_id={client_id}, tenant_id={tenant_id}")
@@ -64,6 +70,20 @@ def login_spn(client_id, client_secret, tenant_id):
     except Exception as e:
         click.echo(f"❌ Error logging in: {e}")
         logger.error(f"Error logging in with SPN: {e}")
+
+
+@login_group.command()
+def default():
+    """Login to Microsoft Fabric using DefaultAzureCredential"""
+    try:
+        logger.debug("Logging in with DefaultAzureCredential")
+        auth.authenticate_with_default_credential(scope="https://api.fabric.microsoft.com/.default")
+
+        click.echo("✅ Successfully logged in with DefaultAzureCredential")
+        logger.debug("DefaultAzureCredential login successful")
+    except Exception as e:
+        click.echo(f"❌ Error logging in: {e}")
+        logger.error(f"Error logging in with DefaultAzureCredential: {e}")
 
 
 @main.group(name="create")
@@ -249,7 +269,7 @@ def resume_capacity_cli(subscription_id, resource_group_name, dedicated_capacity
         logger.error(f"Error resuming capacity: {e}")
 
 
-@main.group()
+@main.group(hidden=True)
 def git():
     """Manage Git repositories"""
     pass
