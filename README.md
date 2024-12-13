@@ -20,24 +20,26 @@ Beware! If you set POWER_BI_ACCESS_TOKEN it will overwrite all other authenticat
 
 To use SPN (Service Principal Name) for authentication, follow these steps:
 
-1. **Login with SPN**:
+1. **🔑Login with SPN**:
     ```sh
     fabric login-spn --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET --tenant-id YOUR_TENANT_ID
     ```
 
-2. **Verify Token**:
-    Ensure that the token is correctly saved and used for subsequent API calls.
+### Using a service-account or Personal account
 
-### Using Short-Lived Token
+At this moment not all api calls are supported by SPN.
+A workaround for this is the following:
 
-If SPN is not supported for a specific endpoint, you can use a short-lived token:
+1. Login with your azure account with az login.
 
-1. **Get Token from Browser**:
-    - Open your browser and authenticate with your Azure AD credentials.
-    - Copy the token from the browser's developer tools.
+    ```sh
+    az login
+    ```
 
-2. **Set Token Manually**:
-    - Use the copied token for your API calls.
+    ```sh
+    fabric login default
+    ```
+
 
 ## 🚀 Features (MORE TO COME)
 
@@ -49,7 +51,7 @@ If SPN is not supported for a specific endpoint, you can use a short-lived token
 - List Lakehouses
 - Create Warehouses (gives an error, but works) (SPN doesn't work)
 - List Warehouses (SPN doesn't work)
-- Add Git repo
+- Add Git repo (SPN doesn't work)
 - Pause and Resume capacity
 - Get capacities
 
@@ -65,26 +67,6 @@ If SPN is not supported for a specific endpoint, you can use a short-lived token
 
 ## 🔑 Obtaining and giving rights to SPN
 
-#TODO
-
-## 🔑 Obtaining the Access Token
-
-When not using a SPN, you can use a Power BI token.
-
-### Steps to Obtain the Bearer Token:
-
-1. Go to [Microsoft Power BI](https://app.powerbi.com/)
-2. Log in with your Microsoft Fabric credentials.
-3. Open the browser's developer tools by pressing `F12`.
-4. In the developer tools, press `Ctrl + F` (or `Cmd + F` on Mac) to open the search bar.
-5. Search for `powerBIAccessToken`.
-6. Copy the token value, then set it as an environment variable named `POWER_BI_ACCESS_TOKEN` in your terminal or IDE.
-
-```bash
-export POWER_BI_ACCESS_TOKEN="your-token-here"
-```
-
-### Be sure to update this token periodically, as it expires after a short time!
 
 ## 📦 Installation
 

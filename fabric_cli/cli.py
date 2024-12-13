@@ -22,6 +22,27 @@ logger = logging.getLogger(__name__)
 auth = Auth()
 
 
+def handle_login_success(message: str):
+    """Handle login success"""
+    click.echo(f"✅ {message}")
+    logger.debug(message)
+
+
+def handle_login_error(e: Exception):
+    """Handle login errors"""
+    click.echo(f"❌ Error logging in: {e}")
+    logger.error(f"Error logging in: {e}")
+
+
+def execute_command(command_func, *args, **kwargs):
+    """Helper function to execute a command with common error handling"""
+    try:
+        command_func(*args, **kwargs)
+    except Exception as e:
+        click.echo(f"❌ Error executing command: {e}")
+        logger.error(f"Error executing command: {e}")
+
+
 @click.group()
 def main():
     """🟠☁️   Welcome to the Fabric CLI Tool! 🟠☁️
@@ -45,13 +66,8 @@ def login_group():
 @click.option("--token", "-t", required=True, help="Power BI access token")
 def token(token):
     """Login to Microsoft Fabric using a token"""
-    try:
-        auth.set_token(token, "fabric")
-        click.echo("✅ Successfully logged in with token")
-        logger.debug("Token login successful")
-    except Exception as e:
-        click.echo(f"❌ Error logging in: {e}")
-        logger.error(f"Error logging in with token: {e}")
+    execute_command(auth.set_token, token, "fabric")
+    handle_login_success("Successfully logged in with token")
 
 
 @login_group.command()
@@ -60,30 +76,18 @@ def token(token):
 @click.option("--tenant-id", required=True, help="Azure AD Tenant ID")
 def spn(client_id, client_secret, tenant_id):
     """Login to Microsoft Fabric using SPN"""
-    try:
-        logger.debug(f"Logging in with SPN: client_id={client_id}, tenant_id={tenant_id}")
-        config = SPNConfig(client_id=client_id, client_secret=client_secret, tenant_id=tenant_id)
-        auth.set_spn_config(config)
-
-        click.echo("✅ Successfully logged in with SPN")
-        logger.debug("SPN login successful")
-    except Exception as e:
-        click.echo(f"❌ Error logging in: {e}")
-        logger.error(f"Error logging in with SPN: {e}")
+    config = SPNConfig(client_id=client_id, client_secret=client_secret, tenant_id=tenant_id)
+    execute_command(auth.set_spn_config, config)
+    handle_login_success("Successfully logged in with SPN")
 
 
 @login_group.command()
 def default():
     """Login to Microsoft Fabric using DefaultAzureCredential"""
-    try:
-        logger.debug("Logging in with DefaultAzureCredential")
-        auth.authenticate_with_default_credential(scope="https://api.fabric.microsoft.com/.default")
-
-        click.echo("✅ Successfully logged in with DefaultAzureCredential")
-        logger.debug("DefaultAzureCredential login successful")
-    except Exception as e:
-        click.echo(f"❌ Error logging in: {e}")
-        logger.error(f"Error logging in with DefaultAzureCredential: {e}")
+    execute_command(
+        auth.authenticate_with_default_credential, scope="https://api.fabric.microsoft.com/.default"
+    )
+    handle_login_success("Successfully logged in with DefaultAzureCredential")
 
 
 @main.group(name="create")
@@ -100,7 +104,8 @@ def create():
 )
 def workspace(name, capacity_id, provision_identity):
     """Create a new workspace"""
-    try:
+
+    def command_logic():
         # Create workspace
         workspace_id = create_workspace(name, auth, capacity_id)
         click.echo(f"✅ Created workspace '{name}' with ID: {workspace_id}")
@@ -118,12 +123,7 @@ def workspace(name, capacity_id, provision_identity):
             click.echo(f"✅ Successfully provisioned identity for workspace '{name}'")
             logger.debug(f"Provisioned identity for workspace '{name}'")
 
-        return workspace_id
-
-    except Exception as e:
-        click.echo(f"❌ Error: {e}")
-        logger.error(f"Error creating workspace: {e}")
-        return None
+    execute_command(command_logic)
 
 
 @create.command()
@@ -131,31 +131,29 @@ def workspace(name, capacity_id, provision_identity):
 @click.option("--workspace-id", required=True, help="Workspace ID where to create the lakehouse")
 def lakehouse(name, workspace_id):
     """Create a new lakehouse in a workspace"""
-    try:
+
+    def command_logic():
         lakehouse_id = create_lakehouse(workspace_id, name, auth)
         click.echo(f"✅ Created lakehouse '{name}' with ID: {lakehouse_id}")
         logger.debug(f"Lakehouse created with ID: {lakehouse_id}")
         return lakehouse_id
-    except Exception as e:
-        click.echo(f"❌ Error: {e}")
-        logger.error(f"Error creating lakehouse: {e}")
-        return None
+
+    execute_command(command_logic)
 
 
 @create.command()
 @click.argument("name")
 @click.option("--workspace-id", required=True, help="Workspace ID where to create the warehouse")
 def warehouse(name, workspace_id):
-    """Create a new warehouse in a workspace !!not working with SPN!!"""
-    try:
+    """Create a new warehouse in a workspace"""
+
+    def command_logic():
         warehouse_id = create_warehouse(workspace_id, name, auth)
         click.echo(f"✅ Created warehouse '{name}' with ID: {warehouse_id}")
         logger.debug(f"Warehouse created with ID: {warehouse_id}")
         return warehouse_id
-    except Exception as e:
-        click.echo(f"❌ Error: {e}")
-        logger.error(f"Error creating warehouse: {e}")
-        return None
+
+    execute_command(command_logic)
 
 
 @main.group()
@@ -167,7 +165,8 @@ def display():
 @display.command(name="workspaces")
 def list_workspaces():
     """Display all workspaces"""
-    try:
+
+    def command_logic():
         spaces = get_workspaces(auth)
         if not spaces:
             click.echo("⚠️ No workspaces found")
@@ -177,16 +176,16 @@ def list_workspaces():
             capacity_info = f" (Capacity ID: {capacity_id})" if capacity_id else ""
             click.echo(f"  • {display_name} (ID: {workspace_id}){capacity_info}")
         logger.debug(f"Listed workspaces: {spaces}")
-    except Exception as e:
-        click.echo(f"❌ Error listing workspaces: {e}")
-        logger.error(f"Error listing workspaces: {e}")
+
+    execute_command(command_logic)
 
 
 @display.command(name="lakehouses")
 @click.option("--workspace-id", required=True, help="Workspace ID to list lakehouses from")
 def list_lakehouses(workspace_id):
     """Display all lakehouses in a workspace"""
-    try:
+
+    def command_logic():
         lakehouses = get_lakehouses(workspace_id, auth)
         if not lakehouses:
             click.echo(f"⚠️ No lakehouses found in workspace {workspace_id}")
@@ -196,9 +195,8 @@ def list_lakehouses(workspace_id):
         for lakehouse_id, display_name in lakehouses:
             click.echo(f"  • {display_name} (ID: {lakehouse_id})")
         logger.debug(f"Listed lakehouses: {lakehouses}")
-    except Exception as e:
-        click.echo(f"❌ Error listing lakehouses: {e}")
-        logger.error(f"Error listing lakehouses: {e}")
+
+    execute_command(command_logic)
 
 
 @display.command(name="warehouses")
@@ -206,7 +204,8 @@ def list_lakehouses(workspace_id):
 def list_warehouses(workspace_id):
     """Display all warehouses in a workspace !!not working with SPN!!"""
     logger.debug(f"Current state: {auth.get_state()}")
-    try:
+
+    def command_logic():
         warehouses = get_warehouses(workspace_id, auth)
         if not warehouses:
             click.echo(f"⚠️ No warehouses found in workspace {workspace_id}")
@@ -216,21 +215,20 @@ def list_warehouses(workspace_id):
         for warehouse_id, display_name in warehouses:
             click.echo(f"  • {display_name} (ID: {warehouse_id})")
         logger.debug(f"Listed warehouses: {warehouses}")
-    except Exception as e:
-        click.echo(f"❌ Error listing warehouses: {e}")
-        logger.error(f"Error listing warehouses: {e}")
+
+    execute_command(command_logic)
 
 
 @display.command(name="capacities")
 def display_capacities():
     """Display all capacities."""
-    try:
+
+    def command_logic():
         capacities = get_capacities(auth)
         for capacity_id, display_name in capacities:
             click.echo(f"  • {display_name} (ID: {capacity_id})")
-    except Exception as e:
-        click.echo(f"❌ Error fetching capacities: {e}")
-        logger.error(f"Error fetching capacities: {e}")
+
+    execute_command(command_logic)
 
 
 @main.group()
@@ -245,13 +243,13 @@ def capacity():
 @click.option("--dedicated-capacity-name", required=True, help="Dedicated capacity name")
 def suspend_capacity_cli(subscription_id, resource_group_name, dedicated_capacity_name):
     """Suspend a dedicated capacity in Azure"""
-    try:
+
+    def command_logic():
         response = suspend_capacity(subscription_id, resource_group_name, dedicated_capacity_name)
         click.echo(f"✅ Successfully suspended capacity '{dedicated_capacity_name}'")
         click.echo(response)
-    except Exception as e:
-        click.echo(f"❌ Error suspending capacity: {e}")
-        logger.error(f"Error suspending capacity: {e}")
+
+    execute_command(command_logic)
 
 
 @capacity.command(name="resume")
@@ -260,13 +258,13 @@ def suspend_capacity_cli(subscription_id, resource_group_name, dedicated_capacit
 @click.option("--dedicated-capacity-name", required=True, help="Dedicated capacity name")
 def resume_capacity_cli(subscription_id, resource_group_name, dedicated_capacity_name):
     """Resume a dedicated capacity in Azure"""
-    try:
+
+    def command_logic():
         response = resume_capacity(subscription_id, resource_group_name, dedicated_capacity_name)
         click.echo(f"✅ Successfully resumed capacity '{dedicated_capacity_name}'")
         click.echo(response)
-    except Exception as e:
-        click.echo(f"❌ Error resuming capacity: {e}")
-        logger.error(f"Error resuming capacity: {e}")
+
+    execute_command(command_logic)
 
 
 @main.group(hidden=True)
@@ -298,20 +296,20 @@ def connect_git(
     directory_name,
 ):
     """Connect a workspace to a Git repository"""
-    git_provider_details = {
-        "organizationName": organization_name,
-        "projectName": project_name,
-        "gitProviderType": git_provider_type,
-        "repositoryName": repository_name,
-        "branchName": branch_name,
-        "directoryName": directory_name,
-    }
-    try:
+
+    def command_logic():
+        git_provider_details = {
+            "organizationName": organization_name,
+            "projectName": project_name,
+            "gitProviderType": git_provider_type,
+            "repositoryName": repository_name,
+            "branchName": branch_name,
+            "directoryName": directory_name,
+        }
         connect_git_repository(workspace_id, git_provider_details, auth)
         click.echo(f"✅ Successfully connected workspace '{workspace_id}' to Git repository")
-    except Exception as e:
-        click.echo(f"❌ Error connecting workspace to Git repository: {e}")
-        logger.error(f"Error connecting workspace to Git repository: {e}")
+
+    execute_command(command_logic)
 
 
 if __name__ == "__main__":
