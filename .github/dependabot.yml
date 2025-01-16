@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/" # Location of package manifests toml file
+    schedule:
+      interval: "weekly"
