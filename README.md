@@ -1,4 +1,4 @@
-# Fabric CLI by Rubicon
+# Fabric CLI
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Danny-de-bree/fabriccli/test.yml?branch=main)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
