@@ -29,11 +29,11 @@ jobs:
     - name: Resume capacity
       if: ${{ github.event.inputs.action == 'resume' }}
       run: |
-        fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
+        fabric login spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity resume --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
 
     - name: Suspend capacity
       if: ${{ github.event.inputs.action == 'suspend' }}
       run: |
-        fabric login-spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
+        fabric login spn --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --tenant-id ${{ secrets.TENANT_ID }}
         fabric capacity suspend --subscription-id ${{ secrets.SUBSCRIPTION_ID }} --resource-group-name ${{ secrets.RESOURCE_GROUP }} --dedicated-capacity-name ${{ secrets.CAPACITY_NAME }}
