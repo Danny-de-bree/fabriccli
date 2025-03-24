@@ -13,6 +13,7 @@ from .git import connect_git_repository
 from .capacity_management import suspend_capacity, resume_capacity
 from .capacity import get_capacities
 from .logging_config import setup_logging
+from .environment import list_environments, upload_staging_library
 
 # Configure logging
 setup_logging()
@@ -308,6 +309,40 @@ def connect_git(
         }
         connect_git_repository(workspace_id, git_provider_details, auth)
         click.echo(f"✅ Successfully connected workspace '{workspace_id}' to Git repository")
+
+    execute_command(command_logic)
+
+
+@main.group()
+def environment():
+    """Manage Spark environment"""
+    pass
+
+
+@environment.command(name="list")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+def list_environments_command(workspace_id: str):
+    def command_logic():
+        environments = list_environments(workspace_id, auth)
+        click.echo(f"Found environments: {environments}")
+
+    execute_command(command_logic)
+
+
+@environment.group()
+def spark_libraries():
+    """Manage Spark libraries in Spark environment."""
+    pass
+
+
+@spark_libraries.command(name="upload")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+@click.option("--environment-name", required=True, help="Spark environment name")
+@click.option("--library-path", required=True, help="Absolute path to library")
+def upload_spark_library_command(workspace_id: str, environment_name: str, library_path: str):
+    def command_logic():
+        upload_staging_library(workspace_id, environment_name, library_path, auth)
+        click.echo(f"✅ Successfully uploaded library to environment '{environment_name}'")
 
     execute_command(command_logic)
 
