@@ -22,7 +22,6 @@ dependencies = [
     "requests",
     "msal",
     "azure-identity",
-    "requests-toolbelt>=1.0.0",
 ]
 
 [project.optional-dependencies]

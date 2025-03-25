@@ -13,7 +13,14 @@ from .git import connect_git_repository
 from .capacity_management import suspend_capacity, resume_capacity
 from .capacity import get_capacities
 from .logging_config import setup_logging
-from .environment import list_environments, upload_staging_library
+from .environment import (
+    delete_python_package_wheels,
+    delete_staging_library,
+    list_environments,
+    publish_environment,
+    upload_staging_library,
+    list_staging_libraries,
+)
 
 # Configure logging
 setup_logging()
@@ -329,20 +336,66 @@ def list_environments_command(workspace_id: str):
     execute_command(command_logic)
 
 
+@environment.command(name="publish")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+@click.option("--environment-id", required=True, help="Spark environment ID")
+def publish_environment_command(workspace_id: str, environment_id: str):
+    def command_logic():
+        publish_environment(workspace_id, environment_id, auth)
+        click.echo("✅ Successfully published environment.")
+
+    execute_command(command_logic)
+
+
 @environment.group()
 def spark_libraries():
     """Manage Spark libraries in Spark environment."""
     pass
 
 
+@spark_libraries.command(name="list")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+@click.option("--environment-id", required=True, help="Spark environment ID")
+def list_spark_libraries_command(workspace_id: str, environment_id: str):
+    def command_logic():
+        staging_libraries = list_staging_libraries(workspace_id, environment_id, auth)
+        click.echo(f"Found staging libraries: {staging_libraries}")
+
+    execute_command(command_logic)
+
+
+@spark_libraries.command(name="delete")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+@click.option("--environment-id", required=True, help="Spark environment ID")
+@click.option("--library-name", required=True, help="Library name (including extension)")
+def delete_spark_library_command(workspace_id: str, environment_id: str, library_name: str):
+    def command_logic():
+        delete_staging_library(workspace_id, environment_id, library_name, auth)
+        click.echo(f"✅ Successfully deleted library '{library_name}'")
+
+    execute_command(command_logic)
+
+
 @spark_libraries.command(name="upload")
 @click.option("--workspace-id", required=True, help="Fabric workspace ID")
-@click.option("--environment-name", required=True, help="Spark environment name")
+@click.option("--environment-id", required=True, help="Spark environment ID")
 @click.option("--library-path", required=True, help="Absolute path to library")
-def upload_spark_library_command(workspace_id: str, environment_name: str, library_path: str):
+def upload_spark_library_command(workspace_id: str, environment_id: str, library_path: str):
     def command_logic():
-        upload_staging_library(workspace_id, environment_name, library_path, auth)
-        click.echo(f"✅ Successfully uploaded library to environment '{environment_name}'")
+        upload_staging_library(workspace_id, environment_id, library_path, auth)
+        click.echo("✅ Successfully uploaded library to environment")
+
+    execute_command(command_logic)
+
+
+@spark_libraries.command(name="delete-wheels")
+@click.option("--workspace-id", required=True, help="Fabric workspace ID")
+@click.option("--environment-id", required=True, help="Spark environment ID")
+@click.option("--package-name", required=True, help="Python package name")
+def delete_python_package_wheels_command(workspace_id: str, environment_id: str, package_name: str):
+    def command_logic():
+        delete_python_package_wheels(workspace_id, environment_id, package_name, auth)
+        click.echo(f"✅ Successfully deleted wheels for package '{package_name}'")
 
     execute_command(command_logic)
 
