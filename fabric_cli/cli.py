@@ -331,7 +331,7 @@ def environment():
 def list_environments_command(workspace_id: str):
     def command_logic():
         environments = list_environments(workspace_id, auth)
-        click.echo(f"Found environments: {environments}")
+        click.echo(environments)
 
     execute_command(command_logic)
 
@@ -359,7 +359,7 @@ def spark_libraries():
 def list_spark_libraries_command(workspace_id: str, environment_id: str):
     def command_logic():
         staging_libraries = list_staging_libraries(workspace_id, environment_id, auth)
-        click.echo(f"Found staging libraries: {staging_libraries}")
+        click.echo(staging_libraries)
 
     execute_command(command_logic)
 

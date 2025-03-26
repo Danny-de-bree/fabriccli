@@ -6,7 +6,7 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def list_environments(workspace_id: str, auth: Auth) -> dict:
+def list_environments(workspace_id: str, auth: Auth) -> list:
     """
     List all Spark environments in a workspace.
 
