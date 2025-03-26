@@ -7,7 +7,7 @@ name = "FabricCLI"
 version = "0.0.1"
 description = "A CLI tool for managing Microsoft Fabric"
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.6.2"
 authors = [
     { name = "Danny de Bree", email = "d.debree@rubicon.nl" },
 ]
