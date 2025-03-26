@@ -54,6 +54,7 @@ A workaround for this is the following:
 - Add Git repo (SPN doesn't work)
 - Pause and Resume capacity
 - Get capacities
+- Add Python wheels to workspace
 
 ## 📝 TODOs
 
